@@ -85,6 +85,10 @@ class ValidateKeyPayload:
                 valid_hairpin = self.get_hairpin_validation()
                 if not valid_hairpin:
                     return False
+            if constraint == 'noKeyInPayload':
+                valid_no_key_in_payload = self.get_no_key_in_payload_validation()
+                if not valid_no_key_in_payload:
+                    return False
         return True
 
     def get_homopolymer_validation(self):
@@ -95,6 +99,9 @@ class ValidateKeyPayload:
 
     def get_gc_validation(self):
         return self.valid_payload_size and self.valid_key_size and self.validate_gc()
+    
+    def get_no_key_in_payload_validation(self):
+        return self.valid_payload_size and self.valid_key_size and self.validate_no_key_in_payload()
 
     ##### Add Keys and Payloads #####
 
@@ -320,9 +327,17 @@ class ValidateKeyPayload:
 
     def validate_hairpin(self):
         return self.hairpin.validate_hairpin(keys=self.keys, payloads=self.payloads)
+    
+    ### No Key in Payload Validation ###
 
+    def validate_no_key_in_payload(self):
+        for key in self.keys:
+            for payload in self.payloads:
+                if key in payload:
+                    return False
+        return True
 
-if __name__ == '__main__':
+def example_validation():
     payload_size = 8
     payload_num = 5
     max_hom = 1
@@ -340,7 +355,7 @@ if __name__ == '__main__':
                               key_num=key_num, loop_size_min=loop_size_min, \
                               loop_size_max=loop_size_max)
 
-    with_constraints = {'hom', 'gcContent', 'hairpin'}
+    with_constraints = {'hom', 'gcContent', 'hairpin', 'noKeyInPayload'}
 
     keys = ['A', 'T']
     payloads = {'CGCGATCG', 'CGCTACTC', 'CGCTACAG', 'CATCGCAG', 'CGCTATGC'}
@@ -353,3 +368,46 @@ if __name__ == '__main__':
         print('Keys and payloads are valid!')
     else:
         print('Keys and payloads are not valid.')
+
+def validate_random_sequences():
+    payload_size = 60
+    payload_num = 15
+    max_hom = 5
+    max_hairpin = 1
+    loop_size_min = 6
+    loop_size_max = 7
+    min_gc = 25
+    max_gc = 65
+    key_size = 20
+    key_num = 8
+    
+    constraints = Constraints(payload_size=payload_size, payload_num=payload_num, \
+                              max_hom=max_hom, max_hairpin=max_hairpin, \
+                              min_gc=min_gc, max_gc=max_gc, key_size=key_size, \
+                              key_num=key_num, loop_size_min=loop_size_min, \
+                              loop_size_max=loop_size_max)
+
+    with_constraints = {'hom', 'gcContent', 'hairpin', 'noKeyInPayload'}
+    bases = ['A', 'T', 'C', 'G']
+
+    import random
+
+    successful_motif_set = 0
+    for i in range(0, 10100000):
+        random_keys = []
+        for j in range (0, key_num):
+            random_keys.append(''.join(random.choices(bases, k=key_size)))
+        random_payloads = set()
+        for k in range (0, payload_num):
+            random_payloads.add(''.join(random.choices(bases, k=payload_size)))
+
+        validate = ValidateKeyPayload(constraints) 
+        validate.set_keys(random_keys) 
+        validate.set_payloads(random_payloads) 
+        if validate.validate_with_constraints(with_constraints):
+            successful_motif_set += 1
+    print('Number of randomly generated motif sets conforming to the constraints is ', successful_motif_set) # Output: 0
+
+if __name__ == '__main__':
+    # example_validation()
+    validate_random_sequences()
