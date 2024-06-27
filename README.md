@@ -30,6 +30,7 @@ To run the Validation Tool, run the following command from the root directory:
 ```bash
 python -m validation_tool.key_payload_validation run
 ```
+This will currently return the number of successfully randomly generated motifs for more than 10^7 attempts.
 
 ### Tests
 
