@@ -8,7 +8,7 @@ So to facilitate the search for a motif-based encoding design which conforms to 
 
 1. A validation tool which verifies whether a set of motifs conforms to the given constraints.
 
-The tool can be found on: https://dna-val.herokuapp.com
+The tool can be found on: http://ssb22.pythonanywhere.com
 
 ## Getting Started
 
